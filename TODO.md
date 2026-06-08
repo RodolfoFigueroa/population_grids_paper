@@ -1,0 +1,6 @@
+- [ ] Download US census data files @Natalia.
+- [ ] Finish notebook with population counts comparison @Rodolfo
+- [ ] Compile a list of metrics in the literature @Gonzalo
+- [ ] Download EU census data files. @Gonzalo
+- [ ] Make a list with available census data, per country per year (LATAM (Mexico, Brazil), USA, Europe)
+- [ ] For each country, define the urban-rural regions (maybe using GHSL urban classes)
