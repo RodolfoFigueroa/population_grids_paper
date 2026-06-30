@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Project data: bulk GeoParquet outputs and raw downloads live outside git
+# (mirrored on OneDrive). Provenance sidecars live alongside the data.
+/data/

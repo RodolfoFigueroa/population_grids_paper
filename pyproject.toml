@@ -10,8 +10,22 @@ dependencies = [
     "geopandas>=1.1.3",
     "ipykernel<7",
     "psycopg2>=2.9.12",
+    "py7zr>=1.1.3",
+    "pyarrow>=17",
+    "requests>=2.32",
     "sqlalchemy>=2.0.49",
+    "tqdm>=4.66",
 ]
+
+[project.scripts]
+download-europe = "popgrids.europe.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["popgrids"]
 
 [dependency-groups]
 dev = [
@@ -20,4 +34,18 @@ dev = [
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["D"]
+# D: docstrings optional. COM812/ISC001: defer to the formatter.
+# TRY003: long messages live at the call site for these small, one-off errors.
+ignore = ["D", "COM812", "ISC001", "TRY003"]
+
+[tool.ruff.lint.per-file-ignores]
+# Shim scripts are intentionally not an importable package.
+"scripts/*" = ["INP001"]
+# io.py deliberately mirrors the stdlib name within the popgrids namespace.
+"popgrids/io.py" = ["A005"]
+# Best-effort git provenance via a fixed-argv subprocess call.
+"popgrids/provenance.py" = ["S404", "S603"]
+# The CLI prints user-facing tables/summaries to stdout.
+"popgrids/europe/cli.py" = ["T201"]
+# The catalog is data: long source URLs and notes exceed the line length.
+"popgrids/europe/catalog.py" = ["E501"]
