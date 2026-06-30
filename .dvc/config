@@ -1,0 +1,2 @@
+['remote "azure_remote"']
+    url = azure://paper-data/population_grids_paper
