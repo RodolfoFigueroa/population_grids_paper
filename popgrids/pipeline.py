@@ -6,12 +6,11 @@ import logging
 from typing import TYPE_CHECKING
 
 from popgrids import __version__
-from popgrids.europe.adapters import (
+from popgrids.adapters import (
     get_adapter,
     join_population,
     load_population_table,
 )
-from popgrids.europe.standardize import standardize
 from popgrids.io import sha256_file, write_geoparquet
 from popgrids.provenance import (
     ProvenanceRecord,
@@ -20,13 +19,14 @@ from popgrids.provenance import (
     now_utc_iso,
     write_sidecar,
 )
+from popgrids.standardize import standardize
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     import requests
 
-    from popgrids.europe.schema import CountryDataset
+    from popgrids.schema import CountryDataset
 
 logger = logging.getLogger(__name__)
 

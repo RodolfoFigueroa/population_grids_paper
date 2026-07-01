@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import shutil
+import subprocess
 import sys
 import zipfile
 from dataclasses import dataclass
@@ -189,25 +191,47 @@ def find_members(
     ]
 
 
+def _unzip_members(archive: Path, dest_dir: Path, names: list[str]) -> list[Path]:
+    """Extract ``names`` via the system ``unzip`` (handles Deflate64, etc.)."""
+    unzip = shutil.which("unzip")
+    if unzip is None:
+        msg = f"{archive.name} uses unsupported zip compression and `unzip` is absent"
+        raise RuntimeError(msg)
+    logger.info("zipfile cannot decompress %s; using system unzip", archive.name)
+    subprocess.run(
+        [unzip, "-o", str(archive), *names, "-d", str(dest_dir)],
+        check=True,
+        capture_output=True,
+    )
+    return [dest_dir / name for name in names]
+
+
 def extract_zip(
     archive: Path,
     dest_dir: Path,
     *,
     members: Iterable[str] | None = None,
 ) -> list[Path]:
-    """Extract ``members`` (or all) from ``archive`` with a zip-slip guard."""
+    """Extract ``members`` (or all) from ``archive`` with a zip-slip guard.
+
+    Falls back to the system ``unzip`` for compression methods stdlib ``zipfile``
+    cannot decode (e.g. Deflate64, used by some IBGE/government zips).
+    """
     dest_dir = Path(dest_dir)
     dest_dir.mkdir(parents=True, exist_ok=True)
-    extracted: list[Path] = []
     with zipfile.ZipFile(archive) as zf:
         names = list(members) if members is not None else zf.namelist()
-        for name in names:
-            if not _is_safe_member(name, dest_dir):
-                msg = f"Unsafe (zip-slip) member path: {name!r}"
-                raise ValueError(msg)
-            zf.extract(name, dest_dir)
-            extracted.append(dest_dir / name)
-    return extracted
+    for name in names:
+        if not _is_safe_member(name, dest_dir):
+            msg = f"Unsafe (zip-slip) member path: {name!r}"
+            raise ValueError(msg)
+    try:
+        with zipfile.ZipFile(archive) as zf:
+            for name in names:
+                zf.extract(name, dest_dir)
+    except NotImplementedError:
+        return _unzip_members(archive, dest_dir, names)
+    return [dest_dir / name for name in names]
 
 
 def extract_members(

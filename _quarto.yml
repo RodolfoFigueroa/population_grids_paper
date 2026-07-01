@@ -1,0 +1,48 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - index.qmd
+    - docs/*.md
+    - notebooks/*.ipynb
+
+website:
+  title: "Population Grids"
+  description: "Census-derived vs gridded population — data acquisition pipeline"
+  repo-url: https://github.com/RodolfoFigueroa/population_grids_paper
+  page-navigation: true
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - text: Data sources
+        menu:
+          - href: docs/europe_census_data.md
+            text: Europe
+          - href: docs/global_census_availability.md
+            text: Global availability
+          - href: docs/time_series_feasibility.md
+            text: Time series
+      - text: Notebooks
+        menu:
+          - href: notebooks/01_generate_assets.ipynb
+            text: "01 · Generate EE assets"
+          - href: notebooks/differences.ipynb
+            text: "Census vs GHSL differences"
+    right:
+      - icon: github
+        href: https://github.com/RodolfoFigueroa/population_grids_paper
+        aria-label: GitHub
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    code-copy: true
+    code-overflow: wrap
+
+# Notebooks/docs are rendered from their saved state — do not re-execute
+# (the notebooks need PostGIS / Earth Engine / GCS credentials).
+execute:
+  enabled: false
+  freeze: auto

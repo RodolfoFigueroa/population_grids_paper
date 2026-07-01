@@ -9,6 +9,7 @@ dependencies = [
     "geemap>=0.37.2",
     "geopandas>=1.1.3",
     "ipykernel<7",
+    "openpyxl>=3.1.5",
     "psycopg2>=2.9.12",
     "py7zr>=1.1.3",
     "pyarrow>=17",
@@ -18,7 +19,8 @@ dependencies = [
 ]
 
 [project.scripts]
-download-europe = "popgrids.europe.cli:main"
+download-census = "popgrids.cli:main"
+download-europe = "popgrids.cli:main"  # back-compat alias
 
 [build-system]
 requires = ["hatchling"]
@@ -41,11 +43,12 @@ ignore = ["D", "COM812", "ISC001", "TRY003"]
 [tool.ruff.lint.per-file-ignores]
 # Shim scripts are intentionally not an importable package.
 "scripts/*" = ["INP001"]
-# io.py deliberately mirrors the stdlib name within the popgrids namespace.
-"popgrids/io.py" = ["A005"]
+# A005: io.py deliberately mirrors the stdlib name. S404/S603: system-unzip
+# fallback for archives stdlib zipfile cannot decode (fixed argv, resolved path).
+"popgrids/io.py" = ["A005", "S404", "S603"]
 # Best-effort git provenance via a fixed-argv subprocess call.
 "popgrids/provenance.py" = ["S404", "S603"]
 # The CLI prints user-facing tables/summaries to stdout.
-"popgrids/europe/cli.py" = ["T201"]
-# The catalog is data: long source URLs and notes exceed the line length.
-"popgrids/europe/catalog.py" = ["E501"]
+"popgrids/cli.py" = ["T201"]
+# Catalogs are data: long source URLs and notes exceed the line length.
+"**/catalog.py" = ["E501"]

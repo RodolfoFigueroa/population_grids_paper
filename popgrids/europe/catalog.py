@@ -14,7 +14,7 @@ Coverage tiers (see ``docs/europe_census_data.md``):
 
 from __future__ import annotations
 
-from popgrids.europe.schema import CountryDataset, GeometryAccess, PopulationSource
+from popgrids.schema import Candidate, CountryDataset, GeometryAccess, PopulationSource
 
 # ISTAT publishes one zip per administrative region (codes 01..20).
 _ISTAT_BASE = "https://www.istat.it/storage/cartografia/basi_territoriali/2021"
@@ -541,14 +541,6 @@ CATALOG.update(
     },
 )
 
-
-def available_countries() -> list[str]:
-    """Return the sorted list of country codes present in the catalog."""
-    return sorted({dataset.country for dataset in CATALOG.values()})
-
-
-def datasets_for_country(country: str) -> list[CountryDataset]:
-    """Return all datasets for an ISO-2 ``country`` code."""
-    return [
-        dataset for dataset in CATALOG.values() if dataset.country == country.upper()
-    ]
+# All European countries are wired (some as gated entries in CATALOG above), so
+# there are no surveyed-but-unwired candidates for this region.
+CANDIDATES: tuple[Candidate, ...] = ()

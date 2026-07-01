@@ -16,9 +16,8 @@ import numpy as np
 import pandas as pd
 
 from popgrids import __version__
+from popgrids.adapters import AdapterError
 from popgrids.crs import to_3035
-from popgrids.europe.adapters import AdapterError
-from popgrids.europe.standardize import build_cells_from_inspire_id
 from popgrids.io import (
     download,
     extract_members,
@@ -33,6 +32,7 @@ from popgrids.provenance import (
     now_utc_iso,
     write_sidecar,
 )
+from popgrids.standardize import build_cells_from_inspire_id
 
 if TYPE_CHECKING:
     from pathlib import Path

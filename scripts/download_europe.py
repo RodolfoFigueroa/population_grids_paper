@@ -1,13 +1,12 @@
 #!/usr/bin/env python
-"""Discoverable entrypoint for the European census downloader.
+"""Back-compat shim for the census downloader (use ``download-census``).
 
-Thin shim around :func:`popgrids.europe.cli.main`; the primary UX is the
-``download-europe`` console script created by ``uv sync``.
+Thin wrapper around :func:`popgrids.cli.main`.
 """
 
 from __future__ import annotations
 
-from popgrids.europe.cli import main
+from popgrids.cli import main
 
 if __name__ == "__main__":
     raise SystemExit(main())

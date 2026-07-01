@@ -5,8 +5,22 @@ for the census-vs-gridded-population comparison (against products such as GHSL
 `GHS_POP`). It covers the data sources, the reproducible download workflow, the
 output format, and the current state of the wired datasets.
 
-The workflow lives in the `popgrids` package (`popgrids/europe/`) and is driven
-by the `download-europe` CLI (or `scripts/download_europe.py`).
+The workflow lives in the `popgrids` package and is driven by the
+**`download-census`** CLI (`download-europe` remains a back-compat alias). Europe
+is one region of a global, catalog-driven pipeline — see also:
+
+- [`global_census_availability.md`](global_census_availability.md) — which
+  countries worldwide have open finest-resolution census data (the survey), and
+  the non-European datasets wired so far (US, Canada, Brazil, Australia).
+- [`time_series_feasibility.md`](time_series_feasibility.md) — temporal coverage
+  and what time-series analysis is feasible.
+- **Per-country data quality**: `download-census --layers quality` builds a
+  reference table from the **World Bank SPI** (overall score + census-availability,
+  CC BY 4.0) and optionally ODIN; `download-census --list` shows it as `spi`/`cens`
+  columns. These are statistical-capacity/recency proxies, not census accuracy.
+
+Outputs are organized by region: `data/europe/<country>/…`,
+`data/americas/<country>/…`, etc. The examples below use `download-census`.
 
 ---
 

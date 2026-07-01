@@ -1,0 +1,49 @@
+---
+title: "Population Grids"
+subtitle: "Comparing census-derived population against gridded population products"
+toc: false
+---
+
+This site documents the research and the reproducible data pipeline behind a
+paper comparing **census-derived population counts** against **gridded population
+products** (e.g. GHSL `GHS_POP`), and surveys where the underlying census data is
+openly available worldwide.
+
+## The pipeline
+
+A catalog-driven downloader (`popgrids`, run via the **`download-census`** CLI)
+acquires the finest official census population per country into standardized
+**GeoParquet**, across regions:
+
+```bash
+download-census --list                     # coverage table + data-quality scores
+download-census --countries DE US BR       # specific countries
+download-census --region europe            # a whole region
+download-census --layers quality           # World Bank SPI data-quality table
+```
+
+Outputs land in `data/<region>/<country>/…` (gitignored). Each country is one
+catalog entry; adding a country is a catalog entry plus an existing adapter.
+
+### Coverage at a glance
+
+- **17 datasets verified** end-to-end against national totals across **Europe**
+  (DE, NL, FR×2, IT, ES, UK, IE, PT, CH, NO, PL, SE), the **Americas**
+  (US blocks, Canada dissemination blocks, Brazil setores), and
+  **Asia-Pacific** (Australia mesh blocks).
+- The **Eurostat GEOSTAT 1 km** grid as a homogenized European baseline, and the
+  global **GHS-UCDB** urban-centre reference.
+- A **per-country data-quality** column (World Bank SPI) on the coverage list.
+
+## Read more
+
+- [Europe — sources, workflow & current data](docs/europe_census_data.md)
+- [Global census-data availability survey](docs/global_census_availability.md)
+- [Time-series feasibility](docs/time_series_feasibility.md)
+
+## Notebooks
+
+- [01 · Generate Earth Engine assets](notebooks/01_generate_assets.ipynb) —
+  promotes census geometry into Earth Engine.
+- [Census vs GHSL differences](notebooks/differences.ipynb) — sums GHSL raster
+  population within census polygons for the comparison.

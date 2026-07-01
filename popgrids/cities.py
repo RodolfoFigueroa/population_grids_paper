@@ -18,8 +18,8 @@ from typing import TYPE_CHECKING
 import geopandas as gpd
 import pandas as pd
 
+from popgrids.adapters import AdapterError
 from popgrids.crs import CRS_LAEA_EUROPE, CRS_WGS84
-from popgrids.europe.adapters import AdapterError
 from popgrids.io import download, extract_members, write_geoparquet
 
 if TYPE_CHECKING:

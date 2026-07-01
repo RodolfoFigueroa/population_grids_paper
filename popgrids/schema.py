@@ -59,6 +59,8 @@ class PopulationSource:
     table_member_contains: tuple[str, ...] = ()
     table_separator: str = ","
     table_encoding: str = "utf-8"
+    table_skiprows: int = 0  # title rows to skip (xlsx)
+    table_sheet_contains: str | None = None  # only read xlsx sheets whose name matches
     join_key_geom: str | None = None
     join_key_pop: str | None = None
     # Build ``join_key_pop`` by zero-padding and concatenating these
@@ -79,6 +81,22 @@ class CountryDataset:
     population: PopulationSource
     licence: str
     attribution: str
+    # Output CRS. Europe normalizes to EPSG:3035 (the catalog default); non-European
+    # datasets set this explicitly (EPSG:4326 or a regional equal-area).
     target_crs: str = "EPSG:3035"
     verified: bool = False
+    notes: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class Candidate:
+    """A surveyed-but-unwired country: appears in the coverage list, not yet built."""
+
+    country: str  # ISO-3166-1 alpha-2
+    unit_label: str  # finest official census unit
+    latest_census: int  # most recent census year
+    open_finest_year: int | None  # most recent census open at finest resolution
+    tier: Tier  # A/B/C access tier (same scheme as CountryDataset.geometry.tier)
+    agency: str
+    bundled: bool | None = None  # population bundled in geometry vs separate join
     notes: str = ""

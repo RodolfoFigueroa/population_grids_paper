@@ -14,12 +14,12 @@ import numpy as np
 import pandas as pd
 import shapely
 
-from popgrids.crs import to_3035
+from popgrids.crs import reproject
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from popgrids.europe.schema import CountryDataset, GeometryAccess
+    from popgrids.schema import CountryDataset, GeometryAccess
 
 #: INSPIRE grid id, e.g. ``CRS3035RES1000mN2683000E4285000`` -> (res, north, east)
 #: of the cell's lower-left corner.
@@ -118,7 +118,7 @@ def standardize(
     gdf: gpd.GeoDataFrame,
     dataset: CountryDataset,
 ) -> gpd.GeoDataFrame:
-    """Rename/augment ``gdf`` to :data:`OUTPUT_COLUMNS` and reproject to 3035."""
+    """Rename/augment ``gdf`` to :data:`OUTPUT_COLUMNS`, reproject to target_crs."""
     pop_attr = dataset.population.attr
     unit_field = dataset.geometry.unit_id_field
     require_columns(
@@ -139,5 +139,5 @@ def standardize(
     result["source"] = result["source"].astype("string")
     result["level"] = result["level"].astype("string")
 
-    result = to_3035(result)
+    result = reproject(result, dataset.target_crs)
     return result[list(OUTPUT_COLUMNS)]

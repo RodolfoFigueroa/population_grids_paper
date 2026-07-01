@@ -18,7 +18,6 @@ from typing import TYPE_CHECKING, NamedTuple, Protocol, runtime_checkable
 import geopandas as gpd
 import pandas as pd
 
-from popgrids.europe.standardize import build_cell_polygons, require_columns
 from popgrids.io import (
     TIMEOUT,
     DownloadResult,
@@ -30,13 +29,14 @@ from popgrids.io import (
     read_vector,
     sha256_file,
 )
+from popgrids.standardize import build_cell_polygons, require_columns
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     import requests
 
-    from popgrids.europe.schema import CountryDataset, PopulationSource
+    from popgrids.schema import CountryDataset, PopulationSource
 
 logger = logging.getLogger(__name__)
 
@@ -333,35 +333,50 @@ class GatedAdapter:
         raise GatedDatasetError(dataset.dataset_id, dataset.notes)
 
 
-def _read_population_table(path: Path, population: PopulationSource) -> pd.DataFrame:
-    if population.table_format in {"xlsx", "zip-xlsx"}:
-        msg = (
-            f"xlsx population tables need openpyxl (not installed) for "
-            f"{population.attr!r}; add it or use a CSV source."
+def _extract_table_member(path: Path, population: PopulationSource) -> Path:
+    suffixes = (
+        {".xlsx", ".xls"} if population.table_format == "zip-xlsx" else {".csv", ".txt"}
+    )
+    extract_dir = path.parent / f"_poptable_{path.stem}"
+    extract_zip(path, extract_dir)
+    members = [
+        candidate
+        for candidate in extract_dir.rglob("*")
+        if candidate.suffix.lower() in suffixes
+        and all(
+            token.lower() in candidate.name.lower()
+            for token in population.table_member_contains
         )
+    ]
+    # Prefer the data file over a "meta_..." metadata companion.
+    non_meta = [c for c in members if "meta" not in c.name.lower()]
+    candidates = sorted(non_meta or members)
+    if not candidates:
+        msg = f"No table in {path.name} matched {population.table_member_contains}"
         raise AdapterError(msg)
+    return candidates[0]
+
+
+def _read_population_table(path: Path, population: PopulationSource) -> pd.DataFrame:
     read_path = path
     if population.table_format in {"zip-csv", "zip-xlsx"}:
-        extract_dir = path.parent / f"_poptable_{path.stem}"
-        extract_zip(path, extract_dir)
-        csvs = [
-            candidate
-            for candidate in extract_dir.rglob("*")
-            if candidate.suffix.lower() in {".csv", ".txt"}
-            and all(
-                token.lower() in candidate.name.lower()
-                for token in population.table_member_contains
-            )
-        ]
-        # Prefer the data file over a "meta_..." metadata companion.
-        non_meta = [c for c in csvs if "meta" not in c.name.lower()]
-        candidates = sorted(non_meta or csvs)
-        if not candidates:
-            msg = f"No CSV in {path.name} matched {population.table_member_contains}"
-            raise AdapterError(msg)
-        read_path = candidates[0]
+        read_path = _extract_table_member(path, population)
     # Read everything as string: preserves leading zeros in code columns and
     # keeps join keys exact; the population attr is coerced to numeric later.
+    if population.table_format in {"xlsx", "zip-xlsx"}:
+        sheets = pd.read_excel(
+            read_path,
+            sheet_name=None,
+            dtype=str,
+            skiprows=population.table_skiprows,
+        )
+        wanted = population.table_sheet_contains
+        frames = [
+            df
+            for name, df in sheets.items()
+            if wanted is None or wanted.lower() in name.lower()
+        ]
+        return pd.concat(frames, ignore_index=True)
     return pd.read_csv(
         read_path,
         sep=population.table_separator,
@@ -424,6 +439,8 @@ def join_population(
     )
     slim = table[[pop_key, population.attr]].copy()
     slim[pop_key] = slim[pop_key].astype("string")
+    # Drop null/duplicate keys (e.g. xlsx footer-note rows) so the m:1 join is valid.
+    slim = slim.dropna(subset=[pop_key]).drop_duplicates(subset=[pop_key], keep="first")
     # Avoid a column-name collision when geometry and table share the key name
     # (e.g. Belgium CD_SECTOR == CD_SECTOR): rename the table key before merge.
     right_key = pop_key
